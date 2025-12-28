@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Field,
   FieldError,
@@ -15,11 +16,17 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { useForm } from "@tanstack/react-form";
-import type { AnyFieldApi } from "@tanstack/react-form";
 import { toast } from "sonner";
-import z from "zod";
+import z, { check } from "zod";
 
 interface RegisterForm {
   firstName: string;
@@ -50,7 +57,12 @@ const defaultValues: RegisterForm = {
   password: "",
   confirmPassword: "",
   address: { street: "", city: "", state: "", zipCode: "" },
-  skills: [],
+  skills: [
+    { name: "HTML", id: crypto.randomUUID(), level: "beginner" },
+
+    { name: "CSS", id: crypto.randomUUID(), level: "beginner" },
+    { name: "JavaScript", id: crypto.randomUUID(), level: "beginner" },
+  ],
   acceptTerms: false,
 };
 
@@ -66,6 +78,7 @@ export default function RegisterForm() {
     },
     onSubmit: async ({ value }) => {
       await new Promise((r) => setTimeout(r, 1000));
+      console.log("Form Values:", value);
       form.state.isValid
         ? toast.success("Registered successfully!")
         : toast.error("Failed to register.");
@@ -99,8 +112,9 @@ export default function RegisterForm() {
                     <Input
                       type="text"
                       id={Field.name}
-                      placeholder="first Name"
-                      arial-invalid={isInvalid}
+                      name={Field.name}
+                      placeholder="First Name"
+                      arial-invalid={isInvalid ? "true" : "false"}
                       value={field.state.value}
                       onChange={(e) => field.handleChange(e.target.value)}
                       onBlur={field.handleBlur}
@@ -111,6 +125,99 @@ export default function RegisterForm() {
                   </Field>
                 );
               }}
+            </form.Field>
+
+            <form.Field name="address.street">
+              {(field) => (
+                <Field>
+                  <FieldLabel htmlFor={field.name}>Street Address</FieldLabel>
+                  <Input
+                    type="text"
+                    id={field.name}
+                    name={field.name}
+                    placeholder="Street Address"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                  />
+                </Field>
+              )}
+            </form.Field>
+
+            {/* Skills Array Field */}
+            <form.Field name="skills" mode="array">
+              {(field) => (
+                <Field>
+                  <FieldLabel htmlFor={field.name}>Skills</FieldLabel>
+
+                  <span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size={"icon-sm"}
+                      onClick={() =>
+                        field.pushValue({
+                          name: "New Skill",
+                          id: crypto.randomUUID(),
+                          level: "beginner",
+                        })
+                      }
+                    >
+                      +
+                    </Button>
+                  </span>
+                  <div className="flex flex-col gap-1">
+                    {field.state.value.map((skill, index) => (
+                      <div key={skill.id} className="flex items-center gap-2">
+                        <span key={skill.id}>{skill.name}</span>
+                        <form.Field name={`skills[${index}].level`}>
+                          {(subField) => (
+                            <select
+                              value={subField.state.value}
+                              onBlur={subField.handleBlur}
+                              onChange={(e) => {
+                                subField.handleChange(e.target.value as any);
+                              }}
+                              className="border p-1 rounded "
+                            >
+                              <option value="beginner">Beginner</option>
+                              <option value="intermediate">Intermediate</option>
+                              <option value="expert">Expert</option>
+                            </select>
+                          )}
+                        </form.Field>
+
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size={"icon-sm"}
+                          onClick={() => field.removeValue(index)}
+                        >
+                          X
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </Field>
+              )}
+            </form.Field>
+
+            <form.Field name="acceptTerms">
+              {(field) => (
+                <Field>
+                  <div className="flex items-center gap-3">
+                    <Checkbox
+                      id="terms"
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          field.handleChange(true);
+                        }
+                      }}
+                    />
+                    <Label htmlFor="terms">Accept terms and conditions</Label>
+                  </div>
+                </Field>
+              )}
             </form.Field>
           </FieldGroup>
           <form.Subscribe
