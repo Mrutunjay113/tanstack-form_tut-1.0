@@ -27,6 +27,8 @@ import { Spinner } from "@/components/ui/spinner";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
 import z, { check } from "zod";
+import { fi } from "zod/locales";
+import { isValid } from "zod/v3";
 
 interface RegisterForm {
   firstName: string;
@@ -68,6 +70,10 @@ const defaultValues: RegisterForm = {
 
 const formScheam = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
+  lastName: z.string().min(2, "Last name must be at least 2 characters"),
+  // acceptTeerms: z.boolean().refine((val) => val === true, {
+  //   message: "You must accept the terms and conditions",
+  // }),
 });
 
 export default function RegisterForm() {
@@ -120,14 +126,38 @@ export default function RegisterForm() {
                       onBlur={field.handleBlur}
                     />
                     {isInvalid && (
-                      <FieldError errors={field.state.meta.errors} />
+                      <FieldError>{field.state.meta.errors}</FieldError>
+                    )}
+                  </Field>
+                );
+              }}
+            </form.Field>
+            <form.Field name="lastName">
+              {(field) => {
+                const isInvalid =
+                  field.state.meta.isTouched && !field.state.meta.isValid;
+                return (
+                  <Field data-invalid={isInvalid}>
+                    <FieldLabel htmlFor={field.name}>Last Name</FieldLabel>
+                    <Input
+                      type="text"
+                      id={Field.name}
+                      name={Field.name}
+                      placeholder="Last Name"
+                      arial-invalid={isInvalid ? "true" : "false"}
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      onBlur={field.handleBlur}
+                    />
+                    {isInvalid && (
+                      <FieldError>{field.state.meta.errors}</FieldError>
                     )}
                   </Field>
                 );
               }}
             </form.Field>
 
-            <form.Field name="address.street">
+            {/* <form.Field name="address.street">
               {(field) => (
                 <Field>
                   <FieldLabel htmlFor={field.name}>Street Address</FieldLabel>
@@ -142,10 +172,10 @@ export default function RegisterForm() {
                   />
                 </Field>
               )}
-            </form.Field>
+            </form.Field> */}
 
             {/* Skills Array Field */}
-            <form.Field name="skills" mode="array">
+            {/* <form.Field name="skills" mode="array">
               {(field) => (
                 <Field>
                   <FieldLabel htmlFor={field.name}>Skills</FieldLabel>
@@ -200,7 +230,7 @@ export default function RegisterForm() {
                   </div>
                 </Field>
               )}
-            </form.Field>
+            </form.Field> */}
 
             <form.Field name="acceptTerms">
               {(field) => (
@@ -216,6 +246,11 @@ export default function RegisterForm() {
                     />
                     <Label htmlFor="terms">Accept terms and conditions</Label>
                   </div>
+                  {!field.state.meta.isValid && (
+                    <FieldError>
+                      {field.state.meta.errors.join(", ")}
+                    </FieldError>
+                  )}
                 </Field>
               )}
             </form.Field>
